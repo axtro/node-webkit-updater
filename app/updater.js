@@ -8,9 +8,14 @@
   var del = require('del');
   var semver = require('semver');
 
-  var platform = process.platform;
-  platform = /^win/.test(platform)? 'win' : /^darwin/.test(platform)? 'mac' : 'linux' + (process.arch == 'ia32' ? '32' : '64');
-
+  var platform = process.platform
+  if (/^win/.test(platform)) {
+    platform = 'win' + (process.arch === 'ia32' ? '32' : '64')
+  } else if (/^darwin/.test(platform)) {
+    platform = 'mac64'
+  } else {
+    platform = 'linux' + (process.arch === 'ia32' ? '32' : '64')
+  }
 
   /**
    * Creates new instance of updater. Manifest could be a `package.json` of project.
