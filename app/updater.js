@@ -3,7 +3,6 @@
 var os = require('os')
 var fs = require('fs')
 var ncp = require('ncp')
-var del = require('del')
 var path = require('path')
 var semver = require('semver')
 var request = require('request')
@@ -223,13 +222,14 @@ var pUnpack = {
     }
     fs.exists(destinationDirectory, function (exists) {
       if (exists) {
-        del(destinationDirectory, {force: true}, function (err) {
-          if (err) {
-            cb(err)
-          } else {
-            unzip()
-          }
-        })
+        try {
+          fs.unlinkSync(destinationDirectory);
+          unzip();
+          //file removed
+        } catch(err) {
+          console.error(err);
+          cb(err);
+        }
       } else {
         unzip()
       }
@@ -354,7 +354,13 @@ var pInstall = {
     var self = this
     var errCounter = 50
     function deleteApp (cb) {
-      del(to, {force: true}, cb)
+      try {
+        fs.unlinkSync(to);
+        cb()
+        //file removed
+      } catch(err) {
+        cb();
+      }
     }
     function appDeleted (err) {
       if (err) {
