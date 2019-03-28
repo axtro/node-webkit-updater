@@ -33,6 +33,27 @@ function updater (manifest, options) {
   this.options = {
     temporaryDirectory: (options && options.temporaryDirectory) || os.tmpdir()
   }
+};
+
+function deleteFolderRecursive(path) {
+  if( fs.existsSync(path) ) {
+    fs.readdirSync(path).forEach(function(file,index){
+      var curPath = path + "/" + file;
+      if(fs.lstatSync(curPath).isDirectory()) { // recurse
+        deleteFolderRecursive(curPath);
+      } else { // delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+  }
+};
+function removeSync(path){
+  if (fs.lstatSync(path).isDirectory()){
+    deleteFolderRecursive(path);
+  }else{
+    fs.unlinkSync(path);
+  }
 }
 
 /**
@@ -223,7 +244,7 @@ var pUnpack = {
     fs.exists(destinationDirectory, function (exists) {
       if (exists) {
         try {
-          fs.unlinkSync(destinationDirectory);
+          removeSync(destinationDirectory);
           unzip();
           //file removed
         } catch(err) {
@@ -355,8 +376,8 @@ var pInstall = {
     var errCounter = 50
     function deleteApp (cb) {
       try {
-        fs.unlinkSync(to);
-        cb()
+        removeSync(to);
+        cb();
         //file removed
       } catch(err) {
         cb();
@@ -412,5 +433,4 @@ updater.prototype.run = function (execPath, args, options) {
   if (platform.indexOf('linux') === 0) arg[0] = path.dirname(arg[0])
   pRun[platform].apply(this, arg)
 }
-
 module.exports = updater
